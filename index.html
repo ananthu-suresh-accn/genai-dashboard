@@ -316,17 +316,21 @@
   function closeMenus(){ document.querySelectorAll('.dd-menu.open').forEach(m=>m.classList.remove('open')); }
   document.addEventListener('click',()=>closeMenus());
 
+  // kind='readme'|'code'. 0 links -> ''; 1 link -> direct button; >1 -> dropdown.
   function ddButtonHTML(kind, topicsMap){
     if(selDay===null || selDay===7) return '';
     const topics=(topicsMap[String(selDay)]||[]).filter(t=>isRealLink(t.link));
     if(!topics.length) return '';
-    const menuId=kind+'Menu';
-    const label=(kind==='readme')?'📖 README ▾':'&lt;/&gt; Code ▾';
     const cls=(kind==='readme')?'readme':'code';
+    const label=(kind==='readme')?'📖 README':'&lt;/&gt; Code';
+    if(topics.length===1){
+      return `<a class="res-btn ${cls}" onclick="openPopup('${topics[0].link}')">${label}</a>`;
+    }
+    const menuId=kind+'Menu';
     const icls=(kind==='readme')?'rd':'cd';
     let items=''; topics.forEach((t,i)=>{ items+=`<a class="dd-item ${icls}" href="${t.link}" target="_blank" rel="noopener"><span class="di-num">${i+1}</span><span>${t.name}</span></a>`; });
     return `<span class="dd">
-        <a class="res-btn ${cls}" onclick="toggleMenu(event,'${menuId}')">${label}</a>
+        <a class="res-btn ${cls}" onclick="toggleMenu(event,'${menuId}')">${label} ▾</a>
         <div class="dd-menu" id="${menuId}">${items}</div>
       </span>`;
   }
@@ -346,12 +350,13 @@
     if(selDay===null){
       if(HOME_VIDEO) rb+=`<a class="res-btn" onclick="openPopup('${HOME_VIDEO}')">▶ Video Link</a>`;
       if(HOME_MATERIAL) rb+=`<a class="res-btn mat" onclick="openPopup('${HOME_MATERIAL}')">📊 Slides</a>`;
+      if(CODE_ROOT) rb+=`<a class="res-btn code" onclick="openPopup('${CODE_ROOT}')">&lt;/&gt; Code</a>`;
     } else if(selDay!==7){
       if(selSlot!==null && vidUrl){ rb+=`<a class="res-btn" onclick="openPopup('${vidUrl}')">▶ Recording Link</a>`; }
       if(isRealLink(matUrl)){ rb+=`<a class="res-btn mat" onclick="openPopup('${matUrl}')">📊 Slides</a>`; }
+      rb+=ddButtonHTML('readme',README_TOPICS);
+      rb+=ddButtonHTML('code',CODE_TOPICS);
     }
-    rb+=ddButtonHTML('readme',README_TOPICS);   // README (only if links)
-    rb+=ddButtonHTML('code',CODE_TOPICS);       // Code (only if links)
     res.innerHTML=rb;
   }
   function openPopup(url){ if(!url)return; const w=screen.availWidth||1400,h=screen.availHeight||900; window.open(url,'genaiPopup',`width=${w},height=${h},left=0,top=0,resizable=yes,scrollbars=yes`); }
